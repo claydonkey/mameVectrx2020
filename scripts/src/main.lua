@@ -187,12 +187,13 @@ end
 
 		includedirs {
 			MAME_DIR .. "src/osd/libretro/libretro-internal",
+                        ext_includedir("rapidjson"),
 		}
 
 		files {
 			MAME_DIR .. "src/osd/libretro/libretro-internal/libretro.cpp"
 		}
-
+ 
 		-- Ensure the public API is made public with GNU ld
 		if _OPTIONS["targetos"]=="linux" then
 			linkoptions {
@@ -377,6 +378,7 @@ end
   	if _OPTIONS["targetos"]=="windows" then
   		includedirs {
   			MAME_DIR .. "3rdparty/winpcap/Include",
+                        ext_includedir("rapidjson"),
 		}
 	end
 

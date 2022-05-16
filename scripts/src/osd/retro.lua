@@ -190,6 +190,7 @@ project ("ocore_" .. _OPTIONS["osd"])
 			MAME_DIR .. "src/osd/modules/file/posixfile.cpp",
 			MAME_DIR .. "src/osd/modules/file/posixfile.h",
 			MAME_DIR .. "src/osd/modules/file/posixptty.cpp",
+                        MAME_DIR .. "src/osd/modules/file/posixtty.cpp",
 			MAME_DIR .. "src/osd/modules/file/posixsocket.cpp",
 		}
 	elseif BASE_TARGETOS=="win32" then
@@ -201,6 +202,7 @@ project ("ocore_" .. _OPTIONS["osd"])
 			MAME_DIR .. "src/osd/modules/file/winfile.cpp",
 			MAME_DIR .. "src/osd/modules/file/winfile.h",
 			MAME_DIR .. "src/osd/modules/file/winptty.cpp",
+                        MAME_DIR .. "src/osd/modules/file/wintty.cpp",
 			MAME_DIR .. "src/osd/modules/file/winsocket.cpp",
 			MAME_DIR .. "src/osd/windows/winutil.cpp", -- FIXME put the necessary functions somewhere more appropriate
 		}

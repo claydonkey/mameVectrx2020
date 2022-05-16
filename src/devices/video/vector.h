@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "video/alt_vector.h"
 
 class vector_device;
 
@@ -37,7 +38,7 @@ public:
 	void clear_list();
 
 	void add_point(int x, int y, rgb_t color, int intensity);
-
+    virtual void device_add_mconfig(machine_config &config) override;
 	// device-level overrides
 	virtual void device_start() override;
 
@@ -52,6 +53,8 @@ private:
 		int intensity;
 	};
 
+    optional_device<alt_vector_device_base> m_alt_vector;
+        
 	std::unique_ptr<point[]> m_vector_list;
 	int m_vector_index;
 	int m_min_intensity;

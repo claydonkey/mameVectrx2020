@@ -103,7 +103,7 @@ public:
 		{
 			// no data available
 			actual = 0;
-			return std::errc::operation_would_block;
+			return std::error_condition();
 		}
 	}
 

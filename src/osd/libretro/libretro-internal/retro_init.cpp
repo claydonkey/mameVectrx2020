@@ -64,7 +64,9 @@ bool buttons_profiles = true;
 bool mame_paths_enable = false;
 bool mame_4way_enable = false;
 char mame_4way_map[256];
-
+int  vector_driver = RETRO_SETTING_VECTOR_DRIVER_USB_DVG;
+char vector_port[20];
+bool vector_screen_mirror;
 bool res_43 = false;
 bool video_changed = false;
 // emu flags
@@ -354,6 +356,25 @@ static void Set_Default_Option(void)
       Add_Option("-lightgun");
    else
       Add_Option("-nolightgun");
+
+   Add_Option("-vector_driver");
+   
+   if ( vector_driver != RETRO_SETTING_VECTOR_DRIVER_SCREEN )
+   {    
+      char tmp[20];
+      Add_Option("usb_dvg");
+      sprintf(tmp, "%s", vector_port);
+      Add_Option("-vector_port");
+      Add_Option((char*)(tmp));
+    
+      if(vector_screen_mirror) {
+         Add_Option("-vector_screen_mirror");    
+      }
+   }
+   else 
+   {
+      Add_Option("screen");
+   }
 
    if(write_config_enable)
       Add_Option("-writeconfig");
@@ -728,14 +749,19 @@ if (log_cb)log_cb(RETRO_LOG_INFO,"ARGUV[0]=%s\n",ARGUV[0]);
       }
    }
    else if (Mamecmdopt){
-         for(i = 1;i < ARGUC; i++)
+         for(i = 1;i < ARGUC; i++){
             Add_Option(ARGUV[i]);
+            log_cb(RETRO_LOG_DEBUG, "mame cmd option args:  %s\n", ARGUV[i]);
+         }
    }
    else
    {
       /* Pass all cmdline args */
       for(i = 0;i < ARGUC; i++)
+         {
          Add_Option(ARGUV[i]);
+            log_cb(RETRO_LOG_DEBUG, "all cmdline args:  %s\n", ARGUV[i]);          
+      }
    }
 
    return 0;

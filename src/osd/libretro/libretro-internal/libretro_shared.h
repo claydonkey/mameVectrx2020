@@ -51,6 +51,11 @@ enum
    RETRO_SETTING_LIGHTGUN_MODE_LIGHTGUN
 };
 
+enum
+{
+   RETRO_SETTING_VECTOR_DRIVER_SCREEN,
+   RETRO_SETTING_VECTOR_DRIVER_USB_DVG
+};
 extern int NEWGAME_FROM_OSD;
 
 extern char g_rom_dir[1024];
@@ -80,7 +85,9 @@ extern bool buttons_profiles;
 extern bool mame_paths_enable;
 extern bool mame_4way_enable;
 extern char mame_4way_map[256];
-
+extern int  vector_driver;
+extern char vector_port[20];
+extern bool vector_screen_mirror;
 extern bool res_43;
 extern bool video_changed;
 

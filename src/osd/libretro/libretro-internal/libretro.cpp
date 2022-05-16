@@ -16,7 +16,9 @@
 
 #include "libretro.h"
 #include "libretro_shared.h"
+#include "osdcore.h"
 
+#include <rapidjson/document.h>
 /* forward decls / externs / prototypes */
 
 extern const char bare_build_version[];
@@ -61,13 +63,15 @@ static char option_mame_paths[50];
 static char option_mame_4way[50];
 
 static char option_res[50];
-
+static char option_vector_driver[50];
+static char option_vector_port[50];
+static char option_vector_screen_mirror[50];
 const char *retro_save_directory;
 const char *retro_system_directory;
 const char *retro_content_directory;
 
 retro_log_printf_t log_cb;
-
+retro_variable  option_vector_port_var;
 static bool draw_this_frame;
 static int cpu_overclock = 100;
 
@@ -88,6 +92,9 @@ retro_environment_t environ_cb = NULL;
 #include "retroogl.c"
 #endif
 
+#define MAX_JSON_SIZE            512
+#define FLAG_CMD_GET_DVG_INFO   0x1
+#define FLAG_CMD                0x5
 static void extract_basename(char *buf, const char *path, size_t size)
 {
    char *ext = NULL;
@@ -129,16 +136,164 @@ static void extract_directory(char *buf, const char *path, size_t size)
 
 retro_input_state_t input_state_cb = NULL;
 retro_audio_sample_batch_t audio_batch_cb = NULL;
-
-void retro_set_audio_sample_batch(retro_audio_sample_batch_t cb) { audio_batch_cb = cb; }
+void retro_set_audio_sample_batch(retro_audio_sample_batch_t cb)
+{
+    audio_batch_cb = cb;
+}
 /*static*/ retro_input_poll_t input_poll_cb;
+void retro_set_input_state(retro_input_state_t cb)
+{
+    input_state_cb = cb;
+}
+void retro_set_input_poll(retro_input_poll_t cb)
+{
+    input_poll_cb = cb;
+}
+void retro_set_video_refresh(retro_video_refresh_t cb)
+{
+    video_cb = cb;
+}
+void retro_set_audio_sample(retro_audio_sample_t cb)
+{
+}
 
-void retro_set_input_state(retro_input_state_t cb) { input_state_cb = cb; }
-void retro_set_input_poll(retro_input_poll_t cb) { input_poll_cb = cb; }
+int  m_json_length;
+std::unique_ptr<uint8_t[]>  m_json_buf= std::make_unique<uint8_t[]>(MAX_JSON_SIZE);
+osd_file::ptr m_serial;
+int serial_write(uint8_t *buf, int size)
+{
+    int result = -1;
+    uint32_t written = 0, chunk, total;
 
-void retro_set_video_refresh(retro_video_refresh_t cb) { video_cb = cb; }
-void retro_set_audio_sample(retro_audio_sample_t cb) { }
+    total = size;
+    while (size)
+    {
+        chunk = std::min(size, 512);
+        m_serial->write(buf, 0, chunk, written);
+        if (written != chunk)
+        {
+            goto END;
+        }
+        buf  += chunk;
+        size -= chunk;
+    }
+    result = total;
+END:
+    return result;
+}
+int serial_read(uint8_t *buf, int size)
+{
+    int result = size;
+    uint32_t read = 0;
 
+    m_serial->read(buf, 0, size, read);
+    if (read != size)
+    {
+        result = -1;
+    }
+    return result;
+}
+void get_dvg_info()
+{
+
+    uint32_t cmd;
+    uint8_t  cmd_buf[4];
+    int      result;
+    uint32_t version, major, minor;
+
+    if (m_json_length)
+    {
+        return;
+    }
+    cmd = (FLAG_CMD << 29) | FLAG_CMD_GET_DVG_INFO;
+
+    sscanf(emulator_info::get_build_version(), "%u.%u", &major, &minor);
+    version = (((minor / 1000) % 10) << 12) | (((minor / 100) % 10) << 8) | (((minor / 10) % 10) << 4) | (minor % 10);
+
+    cmd |= version << 8;
+    cmd_buf[0] = cmd >> 24;
+    cmd_buf[1] = cmd >> 16;
+    cmd_buf[2] = cmd >> 8;
+    cmd_buf[3] = cmd >> 0;
+
+    serial_write(cmd_buf, 4);
+    result = serial_read(reinterpret_cast<uint8_t *> (&cmd), sizeof(cmd));
+
+    if (result < 0) return ;
+    result = serial_read(reinterpret_cast<uint8_t *> (&m_json_length), sizeof(m_json_length));
+
+    if (result < 0) return ;
+    m_json_length = std::min(m_json_length, MAX_JSON_SIZE - 1);
+
+    result = serial_read(&m_json_buf[0], m_json_length);
+
+    if (result < 0) return ;
+
+
+
+}
+retro_variable retro_get_available_usb_dvg_devices()
+{
+    char optports[256];
+    char ports[150];
+    char port[20];
+    bool dvg_found = false;
+    rapidjson::Document m_document;
+
+    if (log_cb)
+        log_cb(RETRO_LOG_INFO, "Mame Build Version:  %s\n",emulator_info::get_build_version());
+    for (uint8_t pnum=1;pnum<10;pnum++)
+    {
+#if defined(WIN32) || defined(__WIN32__) || defined(_WIN32) || defined(_MSC_VER) 
+        sprintf (port,"\\\\.\\COM%u", pnum);
+#else
+        sprintf (port,"/dev/ttyACM%u", pnum);
+#endif
+
+        if (log_cb)
+            log_cb(RETRO_LOG_INFO, "[USB_DVG] Checking for Device on Port:  %s\n",(char *) port);
+
+        uint64_t size =0;
+        std::error_condition errcond = osd_file::open((char *) port, OPEN_FLAG_READ | OPEN_FLAG_WRITE, m_serial, size);
+        if (errcond.value() == 2) //Bug in os_file::open. error_condition reports an available port as Error: 13:Permission denied ...
+        {
+            if (log_cb)
+            {
+                //         log_cb(RETRO_LOG_INFO, "[USB_DVG] Device not present: Port: %s Val: %d Error: %s\n", &port, errcond.value(), const_cast<char*>(errcond.message().c_str()));
+            }
+        } else
+        {
+            if (log_cb)
+                log_cb(RETRO_LOG_INFO, "[USB_DVG] Port Found:  %s\n",(char *) port);
+
+            sprintf (ports,"%s|", (char *) port);
+            get_dvg_info();
+
+            m_document.Parse(reinterpret_cast<const char *> (&m_json_buf[0]));
+            char cinfo[100];
+            sprintf(cinfo, "%s %s. crtType: %s",m_document["productName"].GetString(),m_document["version"].GetString(),m_document["crtType"].GetString());
+
+            if (log_cb)
+                log_cb(RETRO_LOG_INFO, "[USB_DVG] Device found:  %s\n", cinfo); //HOOK this into Retroarch Onscreen Notifications
+
+            dvg_found = true;
+
+        }
+        osd_file::remove((char *) port);
+        m_serial = NULL;
+    }
+
+    sprintf(optports, "Vector driver serial port; %s",ports);
+
+    if (dvg_found)
+    {
+        optports[strlen(optports)-1] = '\0';
+        if (log_cb)
+            log_cb(RETRO_LOG_INFO, "OPTION_VECTOR_PORTS: %s. optports strlen %d\n",optports,strlen(optports));
+        return  { option_vector_port, optports};
+    } else
+        return  {option_vector_port, "Vector driver serial port; \\\\.\\COM4"};
+}
 void retro_set_environment(retro_environment_t cb)
 {
    sprintf(option_mouse, "%s_%s", core, "mouse_enable");
@@ -162,7 +317,12 @@ void retro_set_environment(retro_environment_t cb)
    sprintf(option_buttons_profiles, "%s_%s", core, "buttons_profiles");
    sprintf(option_mame_paths, "%s_%s", core, "mame_paths_enable");
    sprintf(option_mame_4way, "%s_%s", core, "mame_4way_enable");
+    sprintf(option_vector_driver, "%s_%s", core, "vector_driver");
+    sprintf(option_vector_port, "%s_%s", core, "vector_port");
+    sprintf(option_vector_screen_mirror, "%s_%s", core, "vector_mirror");
 
+
+    option_vector_port_var = retro_get_available_usb_dvg_devices();
    static const struct retro_variable vars[] = {
     { option_read_config, "Read configuration; disabled|enabled" },
     { option_write_config, "Write configuration; disabled|enabled" },
@@ -187,6 +347,9 @@ void retro_set_environment(retro_environment_t cb)
     { option_mame_paths, "MAME INI Paths; disabled|enabled" },
 
     { option_mame_4way, "MAME Joystick 4-way simulation; disabled|4way|strict|qbert"},
+        { option_vector_driver, "Vector driver (USB DVG); screen|usb_dvg"},
+        option_vector_port_var,
+        { option_vector_screen_mirror, "Enable Vector driver screen mirror; disabled|enabled"},
     { NULL, NULL },
    };
 
@@ -251,6 +414,40 @@ static void check_variables(void)
          lightgun_mode = RETRO_SETTING_LIGHTGUN_MODE_DISABLED;
    }
 
+    var.key   = option_vector_driver;
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (!strcmp(var.value, "screen"))
+            vector_driver = RETRO_SETTING_VECTOR_DRIVER_SCREEN ;
+        else
+        {
+            vector_driver = RETRO_SETTING_VECTOR_DRIVER_USB_DVG;
+            var.key   = option_vector_port;
+            var.value = NULL;
+
+            if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+            {
+                sprintf(vector_port, "%s", var.value);
+            }
+            NEWGAME_FROM_OSD=1;
+            video_changed=true;
+        }
+    }
+
+    var.key   = option_vector_screen_mirror;
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (!strcmp(var.value, "disabled"))
+            vector_screen_mirror = false;
+        else
+            vector_screen_mirror = true;
+    }
+
+
    var.key   = option_buttons_profiles;
    var.value = NULL;
 
@@ -286,7 +483,8 @@ if(alternate_renderer==true)
 	  snprintf(str, sizeof(str), "%s", var.value);
 
       pch = strtok(str, "x");
-      if (pch){
+            if (pch)
+            {
          fb_width = strtoul(pch, NULL, 0);
 	 fb_pitch=fb_width;
       }
@@ -621,8 +819,7 @@ void retro_init (void)
        * otherwise use system directory. */
       retro_save_directory = *save_dir ? save_dir : retro_system_directory;
 
-   }
-   else
+    } else
    {
       /* make retro_save_directory the same,
        * in case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY
@@ -675,7 +872,8 @@ void retro_run (void)
       {
          retro_pause=-1;
          retro_load_ok=false;
-      } else {
+        } else
+        {
          retro_load_ok=true;
       }
       if (log_cb)log_cb(RETRO_LOG_INFO,"MAIN FIRST\n");
@@ -696,8 +894,8 @@ void retro_run (void)
                ninfo.geometry.base_width, ninfo.geometry.base_height, ninfo.geometry.aspect_ratio);
 
       NEWGAME_FROM_OSD=0;
-   }
-   else if (NEWGAME_FROM_OSD == 2){
+    } else if (NEWGAME_FROM_OSD == 2)
+    {
       update_geometry();
       printf("w:%d h:%d a:%f\n",fb_width,fb_height,retro_aspect);
       NEWGAME_FROM_OSD=0;
@@ -786,9 +984,10 @@ bool retro_unserialize(const void *data, size_t size)
 		return (mame_machine_manager::instance()->machine()->save().read_buffer((u8*)data, size) == STATERR_NONE);
 	return false;
 }
-
-unsigned retro_get_region (void) { return RETRO_REGION_NTSC; }
-
+unsigned retro_get_region (void)
+{
+    return RETRO_REGION_NTSC;
+}
 void *find_mame_bank_base(offs_t start, address_space &space)
 {
 	for ( auto &bank : mame_machine_manager::instance()->machine()->memory().banks() )
@@ -861,11 +1060,19 @@ size_t retro_get_memory_size(unsigned type)
 
 	return ( best_match1 != 0 ? best_match1 : ( best_match2 != 0 ? best_match2 : best_match3 ) );
 }
-bool retro_load_game_special(unsigned game_type, const struct retro_game_info *info, size_t num_info) {return false; }
-void retro_cheat_reset(void) {}
-void retro_cheat_set(unsigned unused, bool unused1, const char* unused2) {}
-void retro_set_controller_port_device(unsigned in_port, unsigned device) {}
-
+bool retro_load_game_special(unsigned game_type, const struct retro_game_info *info, size_t num_info)
+{
+    return false;
+}
+void retro_cheat_reset(void)
+{
+}
+void retro_cheat_set(unsigned unused, bool unused1, const char* unused2)
+{
+}
+void retro_set_controller_port_device(unsigned in_port, unsigned device)
+{
+}
 void retro_switch_to_main_thread(void)
 {
 }
