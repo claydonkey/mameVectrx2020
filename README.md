@@ -1,3 +1,7 @@
+# **USB_DVG** #
+
+This version of Libretro Mame has been altered to allow the connection of the USB_DVG USB to Vector XY Device
+
 [![pipeline status](https://git.libretro.com/libretro/mame/badges/master/pipeline.svg)](https://git.libretro.com/libretro/mame/-/commits/master)
 # **Libretro notice** #
 
