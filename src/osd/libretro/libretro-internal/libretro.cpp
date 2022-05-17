@@ -242,11 +242,14 @@ retro_variable retro_get_available_usb_dvg_devices()
 
     if (log_cb)
         log_cb(RETRO_LOG_INFO, "Mame Build Version:  %s\n",emulator_info::get_build_version());
+    
+#if defined(WIN32) || defined(__WIN32__) || defined(_WIN32) || defined(_MSC_VER) 
     for (uint8_t pnum=1;pnum<10;pnum++)
     {
-#if defined(WIN32) || defined(__WIN32__) || defined(_WIN32) || defined(_MSC_VER) 
         sprintf (port,"\\\\.\\COM%u", pnum);
 #else
+    for (uint8_t pnum=0;pnum<10;pnum++)
+    {
         sprintf (port,"/dev/ttyACM%u", pnum);
 #endif
 
@@ -292,7 +295,11 @@ retro_variable retro_get_available_usb_dvg_devices()
             log_cb(RETRO_LOG_INFO, "OPTION_VECTOR_PORTS: %s. optports strlen %d\n",optports,strlen(optports));
         return  { option_vector_port, optports};
     } else
-        return  {option_vector_port, "Vector driver serial port; \\\\.\\COM4"};
+#if defined(WIN32) || defined(__WIN32__) || defined(_WIN32) || defined(_MSC_VER) 
+        return  {option_vector_port, "Vector driver serial port; \\\\.\\COM1"};
+#else        
+        return  {option_vector_port, "Vector driver serial port; /dev/ttyACM0"};
+#endif
 }
 void retro_set_environment(retro_environment_t cb)
 {

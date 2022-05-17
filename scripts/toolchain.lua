@@ -333,7 +333,7 @@ function toolchain(_buildDir, _subDir)
 	configuration { "linux-gcc", "x32" }
 		objdir (_buildDir .. "linux_gcc" .. "/obj")
 		buildoptions {
-			"-m32",
+			"",
 		}
 
 	configuration { "linux-gcc", "x32", "Release" }
