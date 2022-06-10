@@ -1,0 +1,96 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install",
+			"INSTALL"
+		],
+		"files" : 
+		[
+			"CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 140,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 144,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 148,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 169,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "doc",
+			"destination" : "C:/Users/antho/OneDrive/Documents/Vectrx2020/mame-libretro/3rdparty/rapidjson/out/install/x64-Debug/share/doc/RapidJSON",
+			"paths" : 
+			[
+				"readme.md"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 2,
+			"component" : "dev",
+			"destination" : "C:/Users/antho/OneDrive/Documents/Vectrx2020/mame-libretro/3rdparty/rapidjson/out/install/x64-Debug/include",
+			"paths" : 
+			[
+				"include/rapidjson"
+			],
+			"type" : "directory"
+		},
+		{
+			"backtrace" : 3,
+			"component" : "examples",
+			"destination" : "C:/Users/antho/OneDrive/Documents/Vectrx2020/mame-libretro/3rdparty/rapidjson/out/install/x64-Debug/share/doc/RapidJSON/examples",
+			"paths" : 
+			[
+				{
+					"from" : "example",
+					"to" : "."
+				}
+			],
+			"type" : "directory"
+		},
+		{
+			"backtrace" : 4,
+			"component" : "dev",
+			"destination" : "C:/Users/antho/OneDrive/Documents/Vectrx2020/mame-libretro/3rdparty/rapidjson/out/install/x64-Debug/cmake",
+			"paths" : 
+			[
+				"out/build/x64-Debug/RapidJSONConfig.cmake",
+				"out/build/x64-Debug/RapidJSONConfigVersion.cmake"
+			],
+			"type" : "file"
+		}
+	],
+	"paths" : 
+	{
+		"build" : ".",
+		"source" : "."
+	}
+}

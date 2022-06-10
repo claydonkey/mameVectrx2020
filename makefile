@@ -12,13 +12,13 @@
 #################   BEGIN USER-CONFIGURABLE OPTIONS   #####################
 ###########################################################################
 
-# REGENIE = 1
+ REGENIE = 1
 # VERBOSE = 1
-# NOWERROR = 1
+ NOWERROR = 1
 # IGNORE_GIT = 1
 
 # TARGET = mame
-# SUBTARGET = tiny
+ SUBTARGET = arcade
 # TOOLS = 1
 # TESTS = 1
 # BENCHMARKS = 1
@@ -30,8 +30,8 @@
 # USE_SDL = 1
 # SDL_INI_PATH = .;$HOME/.mame/;ini;
 # SDL2_MULTIAPI = 1
-# NO_USE_MIDI = 1
-# NO_USE_PORTAUDIO = 1
+ NO_USE_MIDI = 1
+ NO_USE_PORTAUDIO = 1
 # NO_USE_PULSEAUDIO = 1
 # USE_TAPTUN = 1
 # USE_PCAP = 1
@@ -41,7 +41,7 @@
 # NO_USE_XINPUT_WII_LIGHTGUN_HACK = 1
 # FORCE_DRC_C_BACKEND = 1
 
-# DEBUG = 1
+ DEBUG = 1
 # PROFILER = 1
 # SANITIZE =
 

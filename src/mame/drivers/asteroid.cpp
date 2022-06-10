@@ -255,6 +255,7 @@ NOTE: Previous program versions, for the second line would only show 4 digits.  
 #include "sound/pokey.h"
 #include "video/avgdvg.h"
 #include "video/vector.h"
+#include "video/vector_vectrx2020.h"
 #include "screen.h"
 
 #include "astdelux.lh"
@@ -754,15 +755,17 @@ void asteroid_state::asteroid_base(machine_config &config)
 	outlatch.bit_handler<5>().set(FUNC(asteroid_state::coin_counter_right_w)); // COIN CNTRR
 
 	// Video hardware
-	VECTOR(config, "vector");
+	//VECTOR(config, "vector");
+	VECTOR_VECTRX2020(config, "vector_vectrx2020", 0);
 	screen_device &screen(SCREEN(config, "screen", SCREEN_TYPE_VECTOR));
 	screen.set_refresh_hz(CLOCK_3KHZ/12/4);
 	screen.set_size(400,300);
 	screen.set_visarea(522, 1566, 394, 1182);
-	screen.set_screen_update("vector", FUNC(vector_device::screen_update));
-
+	//screen.set_screen_update("vector", FUNC(vector_device::screen_update));
+	screen.set_screen_update("vector_vectrx2020", FUNC(vector_vectrx2020_device::screen_update));
 	DVG(config, m_dvg, 0);
-	m_dvg->set_vector("vector");
+	//m_dvg->set_vector("vector");
+	m_dvg->set_vector("vector_vectrx2020");	
 	m_dvg->set_memory(m_maincpu, AS_PROGRAM, 0x4000);
 }
 

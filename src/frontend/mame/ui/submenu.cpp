@@ -130,6 +130,12 @@ std::vector<submenu::option> submenu::video_options()
 			{ option_type::OSD,  N_("Bitmap Prescaling"),                       OSDOPTION_PRESCALE },
 			{ option_type::OSD,  N_("Window Mode"),                             OSDOPTION_WINDOW },
 			{ option_type::EMU,  N_("Enforce Aspect Ratio"),                    OPTION_KEEPASPECT },
+            { option_type::HEAD, N_("Vector Options") },
+            { option_type::OSD,  N_("Vector Driver"),                           OPTION_VECTOR_DRIVER },
+            { option_type::OSD,  N_("Vector Port"),                             OPTION_VECTOR_PORT },
+            { option_type::OSD,  N_("Vector Driver"),                           OPTION_VECTOR_SCREEN_MIRROR },
+                                
+
 			{ option_type::OSD,  N_("Start Out Maximized"),                     OSDOPTION_MAXIMIZE },
 			{ option_type::OSD,  N_("Synchronized Refresh"),                    OSDOPTION_SYNCREFRESH },
 			{ option_type::OSD,  N_("Wait Vertical Sync"),                      OSDOPTION_WAITVSYNC } };
