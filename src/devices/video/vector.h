@@ -8,7 +8,7 @@
 #include "video/vector.h"
 #include "video/vector_usb_dvg.h"
 #include "video/vector_v_st.h"
-#include "video/vector_device_t.h"
+#include "divector.h"
 
 
 class vector_device;
@@ -24,6 +24,7 @@ public:
 	static float s_beam_dot_size;
 	static float s_beam_intensity_weight;
 	static char * s_vector_driver;
+	static bool s_mirror;
 
 protected:
 	static void init(emu_options &options);
@@ -43,13 +44,14 @@ public:
 
 	// construction/destruction
 	vector_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock = 0);
-	virtual void serial_draw_line(float xf0, float yf0, float xf1, float yf1, int intensity);
+	
 	virtual uint32_t screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect) override;
 	virtual void clear_list();
 
 	virtual void add_point(int x, int y, rgb_t color, int intensity) override;
-
-
+	virtual void add_line(float xf0, float yf0, float xf1, float yf1, int intensity) override;
+	
+	 
 	// device-level overrides
 
 private:
@@ -64,18 +66,22 @@ private:
 		int intensity;
 	};
 
+	optional_device<vector_device_t> m_v_st_device;
+	optional_device<vector_device_t> m_usb_dvg_device;
 
-	optional_device<vector_device_t> m_alt_vector;
-
+	
+	 
 
 	std::unique_ptr<point[]> m_vector_list;
-	int m_vector_index;
+	
 	int m_min_intensity;
 	int m_max_intensity;
-
+	
 	float normalized_sigmoid(float n, float k);
 
 protected:
+	
+	int m_vector_index;
     virtual void device_add_mconfig(machine_config &config) override;
     // device-level overrides
     virtual void device_start() override;

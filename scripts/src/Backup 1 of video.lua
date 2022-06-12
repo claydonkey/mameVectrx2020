@@ -24,7 +24,6 @@ files {
 }
 includedirs {
     ext_includedir("rapidjson")
-    ext_includedir("termiWin")
 }
 
 

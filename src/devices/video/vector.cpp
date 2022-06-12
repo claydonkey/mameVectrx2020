@@ -43,7 +43,7 @@
 
 #include "emu.h"
 #include "video/vector.h"
-#include "vector_device_t.h"
+#include "divector.h"
 #include "vector.h"
 #include "emuopts.h"
 #include "render.h"
@@ -59,7 +59,7 @@ float vector_options::s_beam_width_min = 0.0f;
 float vector_options::s_beam_width_max = 0.0f;
 float vector_options::s_beam_dot_size = 0.0f;
 float vector_options::s_beam_intensity_weight = 0.0f;
-//char *vector_options::s_vector_driver;
+bool  vector_options::s_mirror = false;
 
 void vector_options::init(emu_options &options)
 {
@@ -68,18 +68,18 @@ void vector_options::init(emu_options &options)
 	s_beam_dot_size = options.beam_dot_size();
 	s_beam_intensity_weight = options.beam_intensity_weight();
 	s_flicker = options.flicker();
-//	s_vector_driver = const_cast<char *>(options.vector_driver());
-	
+	s_mirror = options.vector_screen_mirror();
 }
 
 // device type definition
 DEFINE_DEVICE_TYPE(VECTOR, vector_device, "vector_device", "VECTOR")
 
-void vector_device::serial_draw_line(float xf0, float yf0, float xf1, float yf1, int intensity){};
 
-vector_device::vector_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
+
+vector_device::vector_device(const machine_config& mconfig, const char* tag, device_t* owner, uint32_t clock)
 	: vector_device_t(mconfig, VECTOR, tag, owner, clock),
-	  m_alt_vector(*this, "vector_usb_dvg"),
+	  m_usb_dvg_device(*this, "vector_usb_dvg"),
+      m_v_st_device(*this, "vector_device_v_st"),
 	  m_vector_list(nullptr),
 	  m_min_intensity(255),
 	  m_max_intensity(0)
@@ -89,15 +89,15 @@ void vector_device::device_add_mconfig(machine_config &config)
 {
     if (!strcmp(config.options().vector_driver(), "usb_dvg"))
 	{
-		VECTOR_USB_DVG(config, "vector_device_usb_dvg");
+		VECTOR_USB_DVG(config, "vector_usb_dvg");
 	}
 	else if (!strcmp(config.options().vector_driver(), "v_st"))
 	{
 		VECTOR_V_ST(config, "vector_device_v_st");
 	}
 }
-
-void serial_draw_line(float xf0, float yf0, float xf1, float yf1, int intensity){};
+void vector_device::add_line(float xf0, float yf0, float xf1, float yf1, int intensity) {};
+ 
 
 void vector_device::device_start()
 {
@@ -132,13 +132,14 @@ float vector_device::normalized_sigmoid(float n, float k)
 void vector_device::add_point(int x, int y, rgb_t color, int intensity)
 {
 
-	if (m_alt_vector.found())
+	if (m_usb_dvg_device.found())
 	{
-        m_alt_vector->add_point(x, y, color, intensity);
-
-
-		return;
+		m_usb_dvg_device->add_point(x, y, color, intensity);
+		if (!vector_options::s_mirror)
+			return;
 	}
+
+	
 
 	point *newpoint;
 
@@ -168,6 +169,11 @@ void vector_device::add_point(int x, int y, rgb_t color, int intensity)
 		m_vector_index--;
 		logerror("*** Warning! Vector list overflow!\n");
 	}
+	if (m_v_st_device.found())
+	{
+		m_v_st_device->add_point(x, y, color, intensity);
+
+	}
 }
 
 /*
@@ -182,14 +188,24 @@ void vector_device::clear_list(void)
 uint32_t vector_device::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect)
 {
 
-	if (m_alt_vector.found())
+	if (m_usb_dvg_device.found())
 	{
-        m_alt_vector->screen_update(screen, bitmap, cliprect);
+		m_usb_dvg_device->screen_update(screen, bitmap, cliprect);
 
 		if (m_vector_index == 0)
 		{
 			return 0;
 		}
+	}
+
+	if (m_v_st_device.found())
+	{
+		m_v_st_device->screen_update(screen, bitmap, cliprect);
+		if (m_vector_index == 0)
+		{
+			return 0;
+		}
+
 	}
 
 	uint32_t flags = PRIMFLAG_ANTIALIAS(1) | PRIMFLAG_BLENDMODE(BLENDMODE_ADD) | PRIMFLAG_VECTOR(1);
@@ -242,7 +258,12 @@ uint32_t vector_device::screen_update(screen_device &screen, bitmap_rgb32 &bitma
 
 			//Screen Update for Derived Class
 
-			serial_draw_line(coords.x0, coords.y0, coords.x1, coords.y1, curpoint->intensity);
+			if (m_v_st_device.found())
+			{
+				m_v_st_device->add_line(coords.x0, coords.y0, coords.x1, coords.y1, curpoint->intensity);
+			
+			}
+			add_line(coords.x0, coords.y0, coords.x1, coords.y1, curpoint->intensity);
 		}
 
 		lastx = curpoint->x;

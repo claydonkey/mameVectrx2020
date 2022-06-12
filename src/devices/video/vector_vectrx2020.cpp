@@ -59,7 +59,7 @@ void vector_vectrx2020_device::serial_reset()
 // we keep a linked list of the vectors and sort them with
 // a greedy insertion sort.
 
-void vector_vectrx2020_device::serial_draw_line(float xf0, float yf0, float xf1, float yf1, int intensity)
+void vector_vectrx2020_device::add_line(float xf0, float yf0, float xf1, float yf1, int intensity)
 {
 	if (m_serial == nullptr)
 		return;
@@ -88,7 +88,7 @@ std::error_condition vector_vectrx2020_device::serial_write(uint8_t *buf, int si
 	while (size)
 	{
 		chunk = std::min(size, 512);
-		result = m_serial->write(buf, 0, chunk, written);
+		result = this->m_serial->write(buf, 0, chunk, written);
 		if (written != chunk)
 		{
 			goto END;
@@ -228,6 +228,10 @@ int vector_vectrx2020_device::serial_send()
 uint32_t vector_vectrx2020_device::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect)
 {
 	vector_device::screen_update(screen, bitmap, cliprect);
+	if (vector_device::m_vector_index == 0)
+	{
+		return 0;
+	}
 	serial_send();
 	return 0;
 };

@@ -566,21 +566,21 @@ m_in_vec_last_x(0),
 m_in_vec_last_y(0),
 m_out_vec_cnt(0),
 m_vertical_display(0),
-m_mirror(false),
 m_json_length(0)
 {
+	
 }
 void vector_device_usb_dvg::device_start()
 {
 
-    m_mirror = machine().config().options().vector_screen_mirror();
+   
 
     int i;
     uint64_t size = 0;
      
     std::error_condition filerr = osd_file::open(machine().config().options().vector_port(), OPEN_FLAG_READ | OPEN_FLAG_WRITE, m_serial, size);
 
-    if (filerr)
+    if (filerr.value())
     {
         fprintf(stderr, "vector_device_usb_dvg: error: osd_file::open failed: %s on port %s\n" , const_cast<char*>(filerr.message().c_str()), machine().config().options().vector_port());
         ::exit(1);
@@ -635,7 +635,7 @@ void vector_device_usb_dvg::add_point(int x, int y, rgb_t color, int intensity)
         color.set_b(cscale * color.b());
     }
     cmd_add_vec(x, y, color, true);
- //   return m_mirror ? 0 : 1;
+  
 }
 void vector_device_usb_dvg::get_dvg_info()
 {

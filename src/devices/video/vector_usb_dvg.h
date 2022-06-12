@@ -6,7 +6,7 @@
 
 #include "osdcore.h"
 #include "screen.h"
-#include "vector_device_t.h"
+#include "divector.h"
 
 class vector_device_usb_dvg : public vector_device_t
 {
@@ -82,7 +82,6 @@ private:
 	std::unique_ptr<vector_t[]> m_out_vec_list;
 	uint32_t m_out_vec_cnt;
 	uint32_t m_vertical_display;
-	bool m_mirror;
 	osd_file::ptr m_serial;
 	int m_json_length;
 	std::unique_ptr<uint8_t[]> m_json_buf;
