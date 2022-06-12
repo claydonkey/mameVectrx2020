@@ -1,5 +1,5 @@
 // license:BSD-3-Clause
-// copyright-holders:Mario Montminy, Anthony Campbell
+// copyright-holders:Trammel Hudson, Anthony Campbell
 #ifndef VECTOR_V_ST_H
 #define VECTOR_V_ST_H
 #pragma once
@@ -8,7 +8,7 @@
 #include "screen.h"
 #include "divector.h"
  
-
+#define  TERMIWIN
 struct serial_segment_t
 {
 	struct serial_segment_t* next;
@@ -43,7 +43,6 @@ public:
 	static float s_vector_offset_x;
 	static float s_vector_offset_y;
 	static char* s_vector_port;
-
 	static int s_vector_rotate;
 	static int s_vector_bright;
 
@@ -58,17 +57,23 @@ public:
 	virtual void add_line(float xf0, float yf0, float xf1, float yf1, int intensity) override;
 	virtual void add_point(int x, int y, rgb_t color, int intensity) override;
     virtual uint32_t screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect) override;
-
 private:
-	osd_file::ptr m_serial; 
+#ifdef TERMIWIN
+	const char* m_serial;
+	int serial_open(const char* const dev);
+	int m_serial_fd;
+#else
+	osd_file::ptr m_serial;
+	std::error_condition serial_write(uint8_t* buf, int size);
+	
+#endif
+	std::unique_ptr<unsigned char[]> m_serial_buf;
 	size_t m_serial_offset;
 	int m_serial_drop_frame;
 	int m_serial_sort;
 	unsigned m_vector_transit[3];
 	serial_segment_t* m_serial_segments;
 	serial_segment_t* m_serial_segments_tail;
-    std::unique_ptr<unsigned char[]> m_serial_buf;
-	std::error_condition serial_write(uint8_t* buf, int size);
 	int serial_read(uint8_t* buf, int size);
 	int serial_send();
 	void serial_draw_point(unsigned x, unsigned y, int intensity);
@@ -78,7 +83,6 @@ protected:
     virtual void device_reset() override;
     virtual void device_stop() override;
 };
-
 
 // device type definition
 DECLARE_DEVICE_TYPE(VECTOR_V_ST, vector_device_v_st)

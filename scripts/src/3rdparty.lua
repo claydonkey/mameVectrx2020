@@ -1012,6 +1012,50 @@ end
 
 end
 
+--------------------------------------------------
+-- termiWin library objects
+--------------------------------------------------
+if not _OPTIONS["with-system-termiWin"] then
+project "termiWin"
+	uuid "58722da6-3274-4a65-86a2-f13ea315bb98"
+	kind "StaticLib"
+
+	includedirs {
+		MAME_DIR .. "3rdparty/termiWin",
+	}
+
+	configuration { "vs*" }
+		buildoptions {
+			"/wd4100", -- warning C4100: 'xxx' : unreferenced formal parameter
+			"/wd4127", -- warning C4127: conditional expression is constant
+			"/wd4244", -- warning C4244: 'argument' : conversion from 'xxx' to 'xxx', possible loss of data
+			"/wd4456", -- warning C4456: declaration of 'xxx' hides previous local declaration
+			"/wd4706", -- warning C4706: assignment within conditional expression
+		}
+if _OPTIONS["vs"]=="intel-15" then
+		buildoptions {
+			"/Qwd188",              -- error #188: enumerated type mixed with another type
+			"/Qwd344",              -- remark #344: typedef name has already been declared (with same type)
+			"/Qwd869",              -- remark #869: parameter "xxx" was never referenced
+			"/Qwd2557",             -- remark #2557: comparison between signed and unsigned operands
+		}
+end
+
+
+	configuration { }
+
+
+	if _OPTIONS["targetos"]=="windows" then
+		files {
+		MAME_DIR .. "3rdparty/termiWin/src/termiWin.c",
+		}
+	end
+
+	
+else
+links {
+	ext_lib("termiWin"),
+}
 
 --------------------------------------------------
 -- portmidi library objects

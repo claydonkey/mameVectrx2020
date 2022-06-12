@@ -52,7 +52,7 @@
 #define VECTOR_WIDTH_DENOM 512
 
 // 20000 is needed for mhavoc (see MT 06668) 10000 is enough for other games
-#define MAX_POINTS 20000
+#define MAX_POINTS 10000
 
 float vector_options::s_flicker = 0.0f;
 float vector_options::s_beam_width_min = 0.0f;
@@ -169,7 +169,7 @@ void vector_device::add_point(int x, int y, rgb_t color, int intensity)
 		m_vector_index--;
 		logerror("*** Warning! Vector list overflow!\n");
 	}
-	if (m_v_st_device.found())
+	if (m_v_st_device.found() && (color | 0xff0000) != 0xff0000)
 	{
 		m_v_st_device->add_point(x, y, color, intensity);
 
@@ -258,8 +258,12 @@ uint32_t vector_device::screen_update(screen_device &screen, bitmap_rgb32 &bitma
 
 			//Screen Update for Derived Class
 
-			if (m_v_st_device.found())
+			if (m_v_st_device.found() && (curpoint->col | 0xff0000) != 0xff0000 )
 			{
+				if (m_vector_index == 0)
+				{
+					return 0;
+				}
 				m_v_st_device->add_line(coords.x0, coords.y0, coords.x1, coords.y1, curpoint->intensity);
 			
 			}

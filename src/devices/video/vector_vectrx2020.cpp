@@ -87,7 +87,7 @@ std::error_condition vector_vectrx2020_device::serial_write(uint8_t *buf, int si
 
 	while (size)
 	{
-		chunk = std::min(size, 512);
+		chunk = std::min(size, 64);
 		result = this->m_serial->write(buf, 0, chunk, written);
 		if (written != chunk)
 		{

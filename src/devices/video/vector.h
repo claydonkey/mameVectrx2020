@@ -81,7 +81,7 @@ private:
 
 protected:
 	
-	int m_vector_index;
+
     virtual void device_add_mconfig(machine_config &config) override;
     // device-level overrides
     virtual void device_start() override;

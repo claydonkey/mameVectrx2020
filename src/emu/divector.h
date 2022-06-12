@@ -27,7 +27,7 @@ public:
 	 
 
 protected:
-
+	int m_vector_index;
 	virtual void device_start() override;
 	virtual void device_reset() override;
 	virtual void device_stop() override;

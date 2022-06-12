@@ -66,6 +66,8 @@ sol2 - [The MIT License (MIT)](http://opensource.org/licenses/MIT)
 
 sqlite3 - Custom public domain license
 
+termiWin - [The BSD 2-Clause License](http://opensource.org/licenses/BSD-2-Clause)
+
 tap-windows6.h - Dual-licensed [The GNU General Public License, version 2](https://opensource.org/licenses/GPL-2.0) and [The MIT License (MIT)](http://opensource.org/licenses/MIT)
 
 utf8proc - [The MIT License (MIT)](http://opensource.org/licenses/MIT)

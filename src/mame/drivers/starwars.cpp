@@ -293,17 +293,17 @@ void starwars_state::starwars(machine_config &config)
 	outlatch.q_out_cb<7>().set(FUNC(starwars_state::recall_w)); // NVRAM array recall
 
 	/* video hardware */
-	VECTOR_VECTRX2020(config, "vector_vectrx2020", 0);
-	//VECTOR(config, "vector");
+	//VECTOR_VECTRX2020(config, "vector_vectrx2020", 0);
+	VECTOR(config, "vector");
 	screen_device &screen(SCREEN(config, "screen", SCREEN_TYPE_VECTOR));
 	screen.set_refresh_hz(CLOCK_3KHZ / 12 / 6);
 	screen.set_size(400, 300);
 	screen.set_visarea(0, 250, 0, 280);
-	screen.set_screen_update("vector_vectrx2020", FUNC(vector_vectrx2020_device::screen_update));
-	//screen.set_screen_update("vector", FUNC(vector_device::screen_update));
+	//screen.set_screen_update("vector_vectrx2020", FUNC(vector_vectrx2020_device::screen_update));
+	screen.set_screen_update("vector", FUNC(vector_device::screen_update));
 	avg_device &avg(AVG_STARWARS(config, "avg", 0));
-	avg.set_vector("vector_vectrx2020");
-	//avg.set_vector("vector");
+	//avg.set_vector("vector_vectrx2020");
+	avg.set_vector("vector");
 	avg.set_memory(m_maincpu, AS_PROGRAM, 0x0000);
 
 	/* sound hardware */

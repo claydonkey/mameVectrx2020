@@ -572,9 +572,6 @@ m_json_length(0)
 }
 void vector_device_usb_dvg::device_start()
 {
-
-   
-
     int i;
     uint64_t size = 0;
      
