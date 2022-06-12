@@ -6,7 +6,7 @@
 #include "video/vector.h"
 #include "video/vector_v_st.h"
 #include <stdint.h>
-#include <termios.h>
+//#include <termios.h>
 
 #define VERBOSE 0
 #define MAX_POINTS 10000

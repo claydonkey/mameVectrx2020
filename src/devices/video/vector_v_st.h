@@ -60,8 +60,6 @@ public:
     virtual uint32_t screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect) override;
 
 private:
-   
-	
 	osd_file::ptr m_serial; 
 	size_t m_serial_offset;
 	int m_serial_drop_frame;
@@ -74,7 +72,6 @@ private:
 	int serial_read(uint8_t* buf, int size);
 	int serial_send();
 	void serial_draw_point(unsigned x, unsigned y, int intensity);
-	 
 	void serial_reset();
 protected:
     virtual void device_start() override;
