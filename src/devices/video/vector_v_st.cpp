@@ -14,7 +14,7 @@
 #include <fcntl.h>
 #endif
 #define VERBOSE 0
-#define MAX_POINTS 20000
+#define MAX_POINTS 10000
 #define VECTOR_SERIAL_MAX 4095
 
 #include "logmacro.h"
@@ -107,10 +107,7 @@ void vector_device_v_st::device_start() {
 	this->m_serial = vector_device_v_st_options::s_vector_port;
 	// allocate enough buffer space, although we should never use this much
 	this->m_serial_buf = make_unique_clear<unsigned char[]>((MAX_POINTS + 2) * 4);
-	if (!this->m_serial_buf)
-	{
-		// todo: how to signal an error?
-	}
+
 
 	serial_reset();
 
@@ -226,13 +223,14 @@ int vector_device_v_st::serial_send() {
 
 	size_t offset = 0;
 #ifdef MAME_DEBUG
-
-	printf("%zu vectors: off=%u on=%u bright=%u%s\n",
-		this->m_serial_offset / 4,
-		this->m_vector_transit[0],
-		this->m_vector_transit[1],
-		this->m_vector_transit[2],
-		this->m_serial_drop_frame ? " !" : "");
+	if (1 == 0) {
+		printf("%zu vectors: off=%u on=%u bright=%u%s\n",
+			this->m_serial_offset / 4,
+			this->m_vector_transit[0],
+			this->m_vector_transit[1],
+			this->m_vector_transit[2],
+			this->m_serial_drop_frame ? " !" : "");
+	}
 		
 #endif
 	static unsigned skip_frame;
@@ -247,8 +245,8 @@ int vector_device_v_st::serial_send() {
 		while (offset < this->m_serial_offset)
 		{
 			size_t wlen = this->m_serial_offset - offset;
-			if (wlen > 128)
-				wlen = 128;
+			if (wlen > 64)
+				wlen = 64;
 
 			ssize_t rc = write(this->m_serial_fd, this->m_serial_buf.get() + offset, this->m_serial_offset - offset);
 			if (rc <= 0)

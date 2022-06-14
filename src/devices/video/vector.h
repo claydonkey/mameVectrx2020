@@ -65,7 +65,7 @@ private:
 		rgb_t col;
 		int intensity;
 	};
-
+	 bool now;
 	optional_device<vector_device_t> m_v_st_device;
 	optional_device<vector_device_t> m_usb_dvg_device;
 

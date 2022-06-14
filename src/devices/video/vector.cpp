@@ -82,7 +82,8 @@ vector_device::vector_device(const machine_config& mconfig, const char* tag, dev
       m_v_st_device(*this, "vector_device_v_st"),
 	  m_vector_list(nullptr),
 	  m_min_intensity(255),
-	  m_max_intensity(0)
+	  m_max_intensity(0),
+	  now(false)
 {
 }
 void vector_device::device_add_mconfig(machine_config &config)
@@ -119,6 +120,7 @@ void vector_device::device_reset()
 /*
  * www.dinodini.wordpress.com/2010/04/05/normalized-tunable-sigmoid-functions/
  */
+
 float vector_device::normalized_sigmoid(float n, float k)
 {
 	// valid for n and k in range of -1.0 and 1.0
@@ -200,6 +202,7 @@ uint32_t vector_device::screen_update(screen_device &screen, bitmap_rgb32 &bitma
 
 	if (m_v_st_device.found())
 	{
+		
 		m_v_st_device->screen_update(screen, bitmap, cliprect);
 		if (m_vector_index == 0)
 		{
@@ -253,12 +256,12 @@ uint32_t vector_device::screen_update(screen_device &screen, bitmap_rgb32 &bitma
 			screen.container().add_line(
 				coords.x0, coords.y0, coords.x1, coords.y1,
 				beam_width,
-				(curpoint->intensity << 24) | (curpoint->col & 0xffffff),
+				(curpoint->intensity << 24) ),
 				flags);
 
 			//Screen Update for Derived Class
 
-			if (m_v_st_device.found() && (curpoint->col | 0xff0000) != 0xff0000 )
+			if (m_v_st_device.found())
 			{
 				if (m_vector_index == 0)
 				{
@@ -269,7 +272,7 @@ uint32_t vector_device::screen_update(screen_device &screen, bitmap_rgb32 &bitma
 			}
 			add_line(coords.x0, coords.y0, coords.x1, coords.y1, curpoint->intensity);
 		}
-
+		now = !now;
 		lastx = curpoint->x;
 		lasty = curpoint->y;
 
