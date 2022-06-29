@@ -553,6 +553,7 @@ end
 --------------------------------------------------
 -- DEC PDP-8
 --@src/devices/cpu/pdp8/pdp8.h,CPUS["PDP8"] = true
+--@src/devices/cpu/pdp8/hd6120.h,CPUS["PDP8"] = true
 --------------------------------------------------
 
 if CPUS["PDP8"] then
@@ -2719,6 +2720,8 @@ if (CPUS["Z80"]~=null or CPUS["KC80"]~=null) then
 		MAME_DIR .. "src/devices/cpu/z80/ez80.h",
 		MAME_DIR .. "src/devices/cpu/z80/lz8420m.cpp",
 		MAME_DIR .. "src/devices/cpu/z80/lz8420m.h",
+		MAME_DIR .. "src/devices/cpu/z80/mc8123.cpp",
+		MAME_DIR .. "src/devices/cpu/z80/mc8123.h",
 		MAME_DIR .. "src/devices/cpu/z80/r800.cpp",
 		MAME_DIR .. "src/devices/cpu/z80/r800.h",
 	}
@@ -3587,6 +3590,8 @@ if CPUS["M68HC16"] then
 	files {
 		MAME_DIR .. "src/devices/cpu/m68hc16/cpu16.cpp",
 		MAME_DIR .. "src/devices/cpu/m68hc16/cpu16.h",
+		MAME_DIR .. "src/devices/cpu/m68hc16/m68hc16z.cpp",
+		MAME_DIR .. "src/devices/cpu/m68hc16/m68hc16z.h",
 	}
 end
 
