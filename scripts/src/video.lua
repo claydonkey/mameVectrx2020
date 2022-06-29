@@ -23,7 +23,7 @@ files {
 	MAME_DIR .. "src/devices/video/vector_v_st.h",
 }
 includedirs {
-    ext_includedir("rapidjson")
+    ext_includedir("rapidjson"),
     ext_includedir("termiWin")
 }
 

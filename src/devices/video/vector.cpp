@@ -52,7 +52,7 @@
 #define VECTOR_WIDTH_DENOM 512
 
 // 20000 is needed for mhavoc (see MT 06668) 10000 is enough for other games
-#define MAX_POINTS 10000
+#define MAX_POINTS 20000
 
 float vector_options::s_flicker = 0.0f;
 float vector_options::s_beam_width_min = 0.0f;
@@ -78,12 +78,12 @@ DEFINE_DEVICE_TYPE(VECTOR, vector_device, "vector_device", "VECTOR")
 
 vector_device::vector_device(const machine_config& mconfig, const char* tag, device_t* owner, uint32_t clock)
 	: vector_device_t(mconfig, VECTOR, tag, owner, clock),
+	  now(false),
+	  m_v_st_device(*this, "vector_device_v_st"),
 	  m_usb_dvg_device(*this, "vector_usb_dvg"),
-      m_v_st_device(*this, "vector_device_v_st"),
 	  m_vector_list(nullptr),
 	  m_min_intensity(255),
-	  m_max_intensity(0),
-	  now(false)
+	  m_max_intensity(0)
 {
 }
 void vector_device::device_add_mconfig(machine_config &config)
@@ -109,18 +109,14 @@ void vector_device::device_start()
 	/* allocate memory for tables */
 	m_vector_list = std::make_unique<point[]>(MAX_POINTS);
 }
-void vector_device::device_stop()
-{
 
-}
-void vector_device::device_reset()
-{
+void vector_device::device_stop(){}
 
-}
+void vector_device::device_reset(){}
+
 /*
  * www.dinodini.wordpress.com/2010/04/05/normalized-tunable-sigmoid-functions/
  */
-
 float vector_device::normalized_sigmoid(float n, float k)
 {
 	// valid for n and k in range of -1.0 and 1.0
@@ -256,14 +252,14 @@ uint32_t vector_device::screen_update(screen_device &screen, bitmap_rgb32 &bitma
 			screen.container().add_line(
 				coords.x0, coords.y0, coords.x1, coords.y1,
 				beam_width,
-				(curpoint->intensity << 24) ),
+				(curpoint->intensity << 24) | (curpoint->col & 0xffffff),
 				flags);
 
 			//Screen Update for Derived Class
 
 			if (m_v_st_device.found())
 			{
-				if (m_vector_index == 0)
+				if (m_vector_index == 0 && (curpoint->col | 0xff0000) != 0xff0000)
 				{
 					return 0;
 				}

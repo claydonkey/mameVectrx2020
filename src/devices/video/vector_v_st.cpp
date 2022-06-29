@@ -6,17 +6,20 @@
 #include "video/vector.h"
 #include "video/vector_v_st.h"
 #include <stdint.h>
-
-
-#if defined _MSC_VER && defined TERMIWIN
-#include <termios.h>
-#include <termiWin.h>
 #include <fcntl.h>
+
+#if defined(__MINGW32__) || defined(_WIN32) 
+#if defined TERMIOS
+#include <termiWin.h>
+#endif
+#elif defined TERMIOS
+#include <termios.h>
+#include <unistd.h>
 #endif
 #define VERBOSE 0
-#define MAX_POINTS 10000
+#define MAX_POINTS 20000
 #define VECTOR_SERIAL_MAX 4095
-
+#define CHUNK_SIZE 64
 #include "logmacro.h"
 
 DEFINE_DEVICE_TYPE(VECTOR_V_ST, vector_device_v_st, "vector_v_st", "VECTOR_V_ST")
@@ -96,7 +99,22 @@ int vector_device_v_st::serial_read(uint8_t *buf, int size)
 {
     return 0;
 }
-#ifdef TERMIWIN
+#ifdef TERMIOS
+int vector_device_v_st::serial_open(const char* const dev)
+{
+	const int fd = open(dev, O_RDWR);
+	if (fd < 0)
+		return -1;
+
+	// Disable modem control signals
+	struct termios attr;
+	tcgetattr(fd, &attr);
+	attr.c_cflag |= CLOCAL | CREAD;
+	attr.c_oflag &= ~OPOST;
+	tcsetattr(fd, TCSANOW, &attr);
+
+	return fd;
+}
 void vector_device_v_st::device_start() {
 	/* Grab the settings for this session */
 	vector_device_v_st_options::init(machine().options());
@@ -245,8 +263,8 @@ int vector_device_v_st::serial_send() {
 		while (offset < this->m_serial_offset)
 		{
 			size_t wlen = this->m_serial_offset - offset;
-			if (wlen > 64)
-				wlen = 64;
+			if (wlen > CHUNK_SIZE)
+				wlen = CHUNK_SIZE;
 
 			ssize_t rc = write(this->m_serial_fd, this->m_serial_buf.get() + offset, this->m_serial_offset - offset);
 			if (rc <= 0)
@@ -299,7 +317,7 @@ std::error_condition vector_device_v_st::serial_write(uint8_t* buf, int size)
 
 	while (size)
 	{
-		chunk = std::min(size, 64);
+		chunk = std::min(size, CHUNK_SIZE);
 		result = m_serial->write(buf, 0, chunk, written);
 		if (written != chunk)
 		{
@@ -519,25 +537,7 @@ void vector_device_v_st::serial_draw_point(unsigned x, unsigned y, int intensity
 }
 
 
-
-#ifdef TERMIWIN
-int vector_device_v_st::serial_open(const char* const dev)
-{
-	const int fd = open(dev, O_RDWR);
-	if (fd < 0)
-		return -1;
-
-	// Disable modem control signals
-	struct termios attr;
-	tcgetattr(fd, &attr);
-	attr.c_cflag |= CLOCAL | CREAD;
-	attr.c_oflag &= ~OPOST;
-	tcsetattr(fd, TCSANOW, &attr);
-
-	return fd;
-}
-#endif
-
+ 
 void vector_device_v_st::device_stop()
 {
 
